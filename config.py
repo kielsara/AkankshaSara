@@ -1,0 +1,1 @@
+'''Centralizing constants and parameters for simple tweaking of simulation setup.'''
