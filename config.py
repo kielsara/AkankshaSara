@@ -6,38 +6,42 @@ simple tweaking of simulation setup as needed.
 
 # === Simulation Control ===
 num_agents = 1500
-num_communities = 5
-nodes_per_community = num_agents // num_communities
-num_influencers = 5
-num_fact_checkers = 100
-num_susceptible_users = 100
-num_normal_users = num_agents - (num_susceptible_users+num_influencers+num_fact_checkers)
+num_seeds = 1  # number of users initially seeded with news
+num_simulation_rounds = 20
+num_trials = 1000
 
-num_seeds = 3  # number of users initially seeded with news
+# === Role Counts (Baseline) ===
+influencer_fraction = 0.025
+fact_checker_fraction = 0.57
+susceptible_fraction = 0.10
 
-num_simulation_rounds = 15
-num_mc_runs = 100
+num_influencers = int(num_agents * influencer_fraction)
+num_fact_checkers = int(num_agents * fact_checker_fraction)
+num_susceptible_users = int(num_agents * susceptible_fraction)
+num_regular_users = num_agents - (num_influencers + num_fact_checkers + num_susceptible_users)
 
-# === News Spread Probabilities ===
-'''everything below this needs updated still!!!'''
-p_share_fake = 0.2
-p_share_real = 0.1
+# === News Sharing Probabilities (Fake News)
+p_share_fake_fact_checker_range = (0.03, 0.07)
+p_share_fake_susceptible_range = (0.17, 0.22)
+p_share_fake_normal_range = (0.11, 0.16)
 
-p_share_fake_influencer = 0.3
-p_share_fake_skeptic = 0.05
-p_share_fake_factchecker = 0.0
+# === News Sharing Probabilities (Factual News)
+p_share_real_normal_range = (0.065, 0.094)
 
-p_share_real_influencer = 0.15
-p_share_real_susceptible = 0.07
-p_share_real_factchecker = 0.1
-p_share_real_normal = 0.1
+# === Fact-checking Intervention ===
+p_fact_check = 0.5  # probability a fact-checker flags fake news
 
-p_fact_check = 0.5  # chance a fact-checker flags false info
+# === Trust Levels by Edge Type ===
+trust_within_direct = (0.8, 1.0)
+trust_within_indirect = (0.5, 0.7)
+trust_between_communities = (0.1, 0.4)
+trust_threshold = 0.6  # below this, agents don’t believe/share what they receive
 
-# === Trust Parameters (Edge Weights) ===
-trust_within_community = (0.5, 1.0)
-trust_between_communities = (0.2, 0.7)
+# === Share Delay Settings ===
+share_delay_fake_range = (1, 2)  # quick reshare
+share_delay_real_range = (6, 12)  # slower diffusion
 
-# === News Spread Delay (in time steps) ===
-share_delay_fake = (1, 2)  # use random.randint(*share_delay_fake)
-share_delay_real = (2, 6)
+# === Network Structure Parameters ===
+num_communities = 5  # used in stochastic block model
+rewire_fraction = 0.01  # Watts-Strogatz long ties
+ba_attachment = 3  # number of edges to attach in Barabasi-Albert model
