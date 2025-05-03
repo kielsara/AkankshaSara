@@ -15,10 +15,11 @@ influencer_fraction = 0.025
 fact_checker_fraction = 0.57
 susceptible_fraction = 0.10
 
-num_influencers = int(num_agents * influencer_fraction)
-num_fact_checkers = int(num_agents * fact_checker_fraction)
-num_susceptible_users = int(num_agents * susceptible_fraction)
-num_regular_users = num_agents - (num_influencers + num_fact_checkers + num_susceptible_users)
+# remove these? - pending
+# num_influencers = int(num_agents * influencer_fraction)
+# num_fact_checkers = int(num_agents * fact_checker_fraction)
+# num_susceptible_users = int(num_agents * susceptible_fraction)
+# num_regular_users = num_agents - (num_influencers + num_fact_checkers + num_susceptible_users)
 
 # === News Sharing Probabilities (Fake News)
 p_share_fake_fact_checker_range = (0.03, 0.07)
@@ -43,5 +44,6 @@ share_delay_real_range = (6, 12)  # slower diffusion
 
 # === Network Structure Parameters ===
 num_communities = 5  # used in stochastic block model
-rewire_fraction = 0.01  # Watts-Strogatz long ties
-ba_attachment = 3  # number of edges to attach in Barabasi-Albert model
+rewire_fraction = 0.2  # The probability of rewiring each edge in Watts-Strogatz model
+ba_attachment = 3  # number of edges, each new node attachs to in Barabasi-Albert model
+k_neighbors = 10 #Each node is joined with its k nearest neighbors in Watts-Strogatz model
