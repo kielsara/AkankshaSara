@@ -1,3 +1,7 @@
+'''
+agent_initializer.py
+'''
+
 import random
 import numpy as np
 from config import  *
@@ -10,7 +14,10 @@ class Agent:
         self.is_fact_checker = False
         self.is_susceptible = False
         self.number_of_friends = 0
-        self.belief_state = False  # for given news item
+        self.belief_state = {'fake': False, 'real': False}
+        self.has_shared = {'fake': False, 'real': False}
+        self.p_share_fake = 0.0
+        self.p_share_real = 0.0
 
 # Assign roles to agents
 def assign_roles(G):
@@ -19,9 +26,9 @@ def assign_roles(G):
     nodes = list(G.nodes())
     random.shuffle(nodes)
 
-    num_influencers = int(influencer_fraction * num_agents)
-    num_fact_checkers = int(fact_checker_fraction * num_agents)
-    num_susceptible = int(susceptible_fraction * num_agents)
+    num_influencers = int(percent_influencers * num_agents)
+    num_fact_checkers = int(percent_fact_checkers * num_agents)
+    num_susceptible = int(percent_susceptible * num_agents)
 
     influencers = set(nodes[:num_influencers])
     fact_checkers = set(nodes[num_influencers:num_influencers + num_fact_checkers])

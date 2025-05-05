@@ -1,3 +1,7 @@
+'''
+network_generator.py
+'''
+
 from config import *
 import networkx as nx
 
