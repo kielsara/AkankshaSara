@@ -44,6 +44,6 @@ share_delay_real_range = (6, 12)  # slower diffusion
 
 # === Network Structure Parameters ===
 num_communities = 5  # used in stochastic block model
-rewire_fraction = 0.2  # The probability of rewiring each edge in Watts-Strogatz model
+rewire_fraction = 0.1  # The probability of rewiring each edge in Watts-Strogatz model
 ba_attachment = 3  # number of edges, each new node attachs to in Barabasi-Albert model
 k_neighbors = 10 #Each node is joined with its k nearest neighbors in Watts-Strogatz model

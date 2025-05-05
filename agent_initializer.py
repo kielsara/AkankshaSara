@@ -46,7 +46,7 @@ def assign_trust_levels(G, num_communities):
 
     for u, v in G.edges():
         if community_labels[u] == community_labels[v]:
-            trust = np.random.uniform(0.5, 1.0) #intra-community
+            trust = np.random.uniform(0.7, 1.0) #intra-community
         else:
             trust = np.random.uniform(0.1, 0.4)  #inter-community
         G[u][v]['trust'] = trust

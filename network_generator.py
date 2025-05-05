@@ -20,18 +20,18 @@ def create_social_network(num_agents, num_communities, k_neighbors):
     G.add_edges_from(ba.edges())
 
 #Just for testing and debugging, remove it later or add Debug parameter - pending
-    for i, (node, data) in enumerate(G.nodes(data=True)):
-        print(f"Node: {node}, Attributes: {data}")
-        if i == 6:  # limit to first 10 nodes
-            break
-
-    for i, (u, v, data) in enumerate(G.edges(data=True)):
-        print(f"Edge: {u} -- {v}, Attributes: {data}")
-        if i == 6:  # limit to first 10 edges
-            break
-
-    print(list(G.nodes())[:6])  # first 10 node IDs
-    print(G.nodes[5])  # attributes of node with ID 5
-
+    # for i, (node, data) in enumerate(G.nodes(data=True)):
+    #     print(f"Node: {node}, Attributes: {data}")
+    #     if i == 6:  # limit to first 10 nodes
+    #         break
+    #
+    # for i, (u, v, data) in enumerate(G.edges(data=True)):
+    #     print(f"Edge: {u} -- {v}, Attributes: {data}")
+    #     if i == 6:  # limit to first 10 edges
+    #         break
+    #
+    # print(list(G.nodes())[:6])  # first 10 node IDs
+    # print(G.nodes[5])  # attributes of node with ID 5
+    #
     return G
 # --------------------------------------------------
