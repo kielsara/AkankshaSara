@@ -28,7 +28,8 @@ def assign_roles(G):
 
     # Top-level role counts
     num_influencers = int(percent_influencers * num_agents)
-    num_fact_checkers = int(percent_fact_checkers * num_agents)
+    num_skeptical = int(percent_skeptical * num_agents)
+    num_fact_checkers = int(percent_fact_checkers * num_skeptical)
     num_susceptible = int(percent_susceptible * num_agents)
 
     # Susceptible subgroup counts
@@ -84,7 +85,7 @@ def assign_trust_levels(G, num_communities):
         if community_labels[u] == community_labels[v]:
             trust = np.random.uniform(0.6, 1.0) #intra-community
         else:
-            trust = np.random.uniform(0.2, 0.6)  #inter-community
+            trust = np.random.uniform(0.1, 0.4)  #inter-community
         G[u][v]['trust'] = trust
 
     return community_labels

@@ -92,12 +92,9 @@ def simulate_spread(G: nx.Graph, agents: Dict[int, Agent], news_items: Dict[str,
                 if neighbor.belief_state is not None:
                     continue  # Already believes something ( fake or real )
 
-                # if neighbor.belief_state[news_type]: # check what needs to be done with the belief state, pending
-                #     continue
-
                 trust = G[uid][neighbor_id]['trust']
-                # if news_items[news_type].is_flagged_fake and news_type == 'fake': # Instead of halting further spread globally, reduce local trust for flagged fake news. - pending remove comment
-                #     trust *= 0.3  # Cut effective trust, not transmission
+                if news_type == 'fake' and news_items['fake'].is_flagged_fake:
+                    trust *= 0.3  # Reduce trust for flagged fake news
                 prob = agent.p_share_fake if news_type == 'fake' else agent.p_share_real
                 effective_probability = prob * trust
 
@@ -109,7 +106,7 @@ def simulate_spread(G: nx.Graph, agents: Dict[int, Agent], news_items: Dict[str,
                     if news_type == 'fake' and neighbor.is_fact_checker:
                         if random.random() < p_fact_check:  #choose a random number between 0.0 and 1.0(exclusive), if the random falls within 50% chance of fact-checking, news will be flagged if fake
                             news_items['fake'].flagged = True
-                            continue # fact-checkers won't share the news further, halting the spread entirely for this neighbor's path
+                            #continue # fact-checkers won't share the news further, halting the spread entirely for this neighbor's path
 
                     # Commit to believe current news if currently belief state is False for both the news_type
                     neighbor.belief_state = news_type
@@ -126,7 +123,7 @@ def simulate_spread(G: nx.Graph, agents: Dict[int, Agent], news_items: Dict[str,
 
     return stats, infected, shared
 
-# Metrics Collection for baseline (10,000) Runs
+# Metrics Collection for baseline (1,000) Runs
 def run_baseline_simulation(num_runs: int = 1000) -> Dict[str, List]: # comment above says 10k but this defaults to 1k? - pending
     metrics = {
         'fake_reach': [], 'real_reach': [],
