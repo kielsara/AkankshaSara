@@ -11,7 +11,7 @@ max_rounds = 500
 
 # === Role Counts (Baseline) ===
 percent_influencers = 0.025
-percent_fact_checkers = 0.39
+percent_fact_checkers = 0.10
 percent_susceptible = 0.10  # percent of total agents who are susceptible
 percent_highly_susceptible_range = (0.05, 0.10)  # percent of susceptible users who are highly susceptible
 percent_super_spreader = 0.001  # percent of susceptible users who are super spreaders
