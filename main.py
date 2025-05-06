@@ -101,7 +101,6 @@ def simulate_spread(G: nx.Graph, agents: Dict[int, Agent], news_items: Dict[str,
 
                 # if effective probability is below the threshold, news is not share by this neighbor and belief state is not changed
                 if random.random() < effective_probability: # if the effective probability of sharing is greater than a random threshold, then share as per the below logic
-                    # update this logic in the document - pending
                     # Fact-checker intervention
                     if news_type == 'fake' and neighbor.is_fact_checker:
                         if random.random() < p_fact_check:  #choose a random number between 0.0 and 1.0(exclusive), if the random falls within 50% chance of fact-checking, news will be flagged if fake
@@ -122,6 +121,7 @@ def simulate_spread(G: nx.Graph, agents: Dict[int, Agent], news_items: Dict[str,
             break
 
     return stats, infected, shared
+
 
 # Metrics Collection for baseline (1,000) Runs
 def run_baseline_simulation(num_runs: int = 1000) -> Dict[str, List]: # comment above says 10k but this defaults to 1k? - pending
@@ -161,6 +161,7 @@ def run_baseline_simulation(num_runs: int = 1000) -> Dict[str, List]: # comment 
         metrics['real_peak_round'].append(np.argmax(np.diff(stats['real'])))
 
     return metrics
+
 
 # Visualize network
 def visualize_network(G, agents, title='Social Network Graph'):
@@ -211,54 +212,6 @@ def plot_baseline_results(metrics: Dict[str, List]):
     plt.tight_layout()
     plt.savefig('baseline_results.png')
     plt.show()
-
-
-# Generate the network
-# G = create_social_network(num_agents, num_communities, k_neighbors)
-# agents = assign_roles(G)
-# community_labels = assign_trust_levels(G, num_communities)
-# #
-# # # Create news items
-# # fake_news = NewsItem("Bigfoot Sightings Up 200% This Year!", is_fake=True)
-# # real_news = NewsItem("NASA Confirms Water on Moon", is_fake=False)
-# #
-# # # Visualize the network
-# # visualize_network(G, agents)
-#
-# # Output some summary stats for confirmation
-# summary = {
-#     "Total Agents": num_agents,
-#     "Influencers": sum(1 for a in agents.values() if a.is_influencer),
-#     "Fact Checkers": sum(1 for a in agents.values() if a.is_fact_checker),
-#     "Susceptible": sum(1 for a in agents.values() if a.is_susceptible),
-#     "Normal Users": sum(1 for a in agents.values() if not (a.is_influencer or a.is_fact_checker or a.is_susceptible)),
-#     "Total Edges": G.number_of_edges()
-# }
-# print(summary)
-
-
-# # === Run Phase 2 Simulation ===
-#
-#
-# initialize_p_shares(agents)
-# for agent in agents.values():
-#     agent.belief_state = {'fake': False, 'real': False}
-#     agent.has_shared = {'fake': False, 'real': False}
-# news_items = {
-#     'fake': NewsItem("Bigfoot Sightings Up 200% This Year!", is_fake=True),
-#     'real': NewsItem("NASA Confirms Water on Moon", is_fake=False)
-# }
-# stats, infected, shared = simulate_spread(G, agents, news_items)
-# print("stats:",stats)
-#
-# stats_summary = {
-#     "Final Fake News Reach": len(infected['fake']),
-#     "Final Real News Reach": len(infected['real']),
-#     "Total Fake Shares": (news_items['fake'].shared_count - seed_count ),
-#     "Total Real Shares": (news_items['real'].shared_count - seed_count),
-#     "Simulation Rounds Run": len(stats['fake'])
-# }
-# print(stats_summary)
 
 
 # Main Execution

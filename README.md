@@ -4,21 +4,12 @@ Developed by Akanksha Agrawal and Sara Kiel as a Final Project in Spring 2025 fo
 ## Overview
 This project simulates the spread of fake and factual news across a synthetic social network using Monte Carlo methods. Agents represent social media users, each assigned roles such as influencers, fact-checkers, susceptible users, or regular users. The goal is to model how misinformation diffuses through a realistic social graph and to evaluate how different conditions—like user type distribution, trust, and fact-checking interventions—affect the reach and speed of information.
 
-## Parameters
-
-## Agent Roles and Behavior
-Each agent is initialized with a unique identifier and a set of boolean flags indicating whether they are an influencer (high connectivity), a fact-checker (capable of flagging misinformation), or a susceptible user (more likely to believe and spread fake news). Agents not assigned any of these roles are considered regular users. Roles may overlap; for instance, an influencer may also be susceptible or skeptical. Each user has a trust threshold, a belief state for each news item, and an associated sharing probability that varies based on their role.
-
+...
 ## Network Structure
+
 ...
 
-## News Spread and Simulation Dynamics
-...
-
-## Phases and Metrics
-...
-
-## Sources - create proper citations before final submission!
+## Sources - do we want to specify what we used from each source? 
 * https://news.mit.edu/2018/study-twitter-false-news-travels-faster-true-stories-0308
 * https://www.ijcai.org/proceedings/2024/0873.pdf
 * https://www.mdpi.com/1999-5903/13/3/76

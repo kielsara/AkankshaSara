@@ -4,6 +4,8 @@ agent_initializer.py
 
 import random
 import numpy as np
+from collections import defaultdict
+import statistics
 from config import  *
 
 # Define agent roles and properties
@@ -23,14 +25,27 @@ class Agent:
 
 def assign_roles(G):
     agents = {}
-    nodes = list(G.nodes())
-    random.shuffle(nodes)
 
     # Top-level role counts
     num_influencers = int(percent_influencers * num_agents)
     num_skeptical = int(percent_skeptical * num_agents)
     num_fact_checkers = int(percent_fact_checkers * num_skeptical)
     num_susceptible = int(percent_susceptible * num_agents)
+
+    # Rank nodes by degree (descending)
+    sorted_nodes_by_degree = sorted(G.degree(), key=lambda x: x[1], reverse=True)
+    sorted_nodes = [node for node, _ in sorted_nodes_by_degree]
+
+    # Influencers are highest degree nodes
+    influencers = set(sorted_nodes[:num_influencers])
+
+    # Shuffle remaining nodes for other role assignments
+    remaining_nodes = sorted_nodes[num_influencers:]
+    random.shuffle(remaining_nodes)
+
+    fact_checkers = set(remaining_nodes[:num_fact_checkers])
+    susceptible_pool = remaining_nodes[num_fact_checkers:num_fact_checkers + num_susceptible]
+    susceptibles = set(susceptible_pool)
 
     # Susceptible subgroup counts
     num_super_spreaders = max(1, int(percent_super_spreader * num_susceptible))
@@ -40,22 +55,14 @@ def assign_roles(G):
     )
     num_normal_susceptible = num_susceptible - num_highly_susceptible - num_super_spreaders
 
-    # Slice node list into roles
-    influencers = set(nodes[:num_influencers])
-    fact_checkers = set(nodes[num_influencers:num_influencers + num_fact_checkers])
-
-    susceptible_pool = nodes[num_influencers + num_fact_checkers:
-                             num_influencers + num_fact_checkers + num_susceptible]
-    susceptibles = set(susceptible_pool)
     random.shuffle(susceptible_pool)
-
     super_spreaders = set(susceptible_pool[:num_super_spreaders])
     highly_susceptible = set(susceptible_pool[num_super_spreaders:
                                               num_super_spreaders + num_highly_susceptible])
     normal_susceptibles = set(susceptible_pool[num_super_spreaders + num_highly_susceptible:])
 
     # Assign properties to each agent
-    for node in nodes:
+    for node in G.nodes():
         agent = Agent(node)
         agent.is_influencer = node in influencers
         agent.is_fact_checker = node in fact_checkers
@@ -71,6 +78,25 @@ def assign_roles(G):
                 agent.susceptible_type = 'normal'
 
         agents[node] = agent
+
+    # validating that influencers have highest degrees, can convert this to debug - pending
+    # Collect degrees by agent type
+    # degree_stats = defaultdict(list)
+    #
+    # for node, agent in agents.items():
+    #     deg = agent.number_of_friends
+    #     if agent.is_influencer:
+    #         degree_stats['influencer'].append(deg)
+    #     elif agent.is_fact_checker:
+    #         degree_stats['fact_checker'].append(deg)
+    #     elif agent.is_susceptible:
+    #         degree_stats[f'susceptible_{agent.susceptible_type}'].append(deg)
+    #     else:
+    #         degree_stats['normal'].append(deg)
+    #
+    # print("\n📊 Degree Stats by Agent Type:")
+    # for role, degs in degree_stats.items():
+    #     print(f"{role:<25} count={len(degs):<4} mean={statistics.mean(degs):.2f}  max={max(degs)}  min={min(degs)}")
 
     return agents
 
