@@ -39,12 +39,11 @@ def assign_roles(G):
     # Influencers are highest degree nodes
     influencers = set(sorted_nodes[:num_influencers])
 
-    # Shuffle remaining nodes for other role assignments
-    remaining_nodes = sorted_nodes[num_influencers:]
-    random.shuffle(remaining_nodes)
+    # Shuffle all nodes for other role assignments
+    random.shuffle(sorted_nodes)
 
-    fact_checkers = set(remaining_nodes[:num_fact_checkers])
-    susceptible_pool = remaining_nodes[num_fact_checkers:num_fact_checkers + num_susceptible]
+    fact_checkers = set(sorted_nodes[:num_fact_checkers])
+    susceptible_pool = sorted_nodes[num_fact_checkers:num_fact_checkers + num_susceptible]
     susceptibles = set(susceptible_pool)
 
     # Susceptible subgroup counts
