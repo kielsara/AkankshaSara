@@ -21,9 +21,15 @@ def initialize_p_shares(agents: Dict[int, Agent]):
         if agent.is_fact_checker:
             agent.p_share_fake = np.random.uniform(*p_fake_fact_checker)
         elif agent.is_susceptible:
-            agent.p_share_fake = np.random.uniform(*p_fake_susceptible)
+            if agent.susceptible_type == "super_spreader":
+                agent.p_share_fake = np.random.uniform(*p_fake_super_spreader)
+            elif agent.susceptible_type == "highly_susceptible":
+                agent.p_share_fake = np.random.uniform(*p_fake_highly_susceptible)
+            else:  # normal
+                agent.p_share_fake = np.random.uniform(*p_fake_susceptible)
         else:
             agent.p_share_fake = np.random.uniform(*p_fake_normal)
+
         agent.p_share_real = np.random.uniform(*p_real_normal)
 
 
@@ -35,9 +41,21 @@ def select_initial_seeds(agents, news_type):
     return seeds
 
 
+def sample_delay_from_distribution(delay_dist: Dict[int, float]) -> int:
+    rand_val = random.random()
+    cumulative = 0.0
+    for delay, prob in sorted(delay_dist.items()):
+        cumulative += prob
+        if rand_val <= cumulative:
+            return delay
+    return max(delay_dist.keys())  # fallback in edge case
+
+
 def schedule_initial_shares(seeds: List[int], agents: Dict[int, Agent], news_type: str, schedule: defaultdict):
     for uid in seeds:
-        delay = random.randint(*fake_delay) if news_type == 'fake' else random.randint(*real_delay)
+        delay = sample_delay_from_distribution(
+            fake_delay_distribution if news_type == 'fake' else real_delay_distribution
+        )
         schedule[delay].append((uid, news_type))
 
 
@@ -96,7 +114,9 @@ def simulate_spread(G: nx.Graph, agents: Dict[int, Agent], news_items: Dict[str,
                     # Commit to believe current news if currently belief state is False for both the news_type
                     neighbor.belief_state = news_type
                     infected[news_type].add(neighbor_id)
-                    delay = random.randint(*(fake_delay if news_type == 'fake' else real_delay))
+                    delay = sample_delay_from_distribution(
+                        fake_delay_distribution if news_type == 'fake' else real_delay_distribution
+                    )
                     schedule[round_num + delay].append((neighbor_id, news_type))
 
         stats['fake'].append(len(infected['fake']))
@@ -107,7 +127,7 @@ def simulate_spread(G: nx.Graph, agents: Dict[int, Agent], news_items: Dict[str,
     return stats, infected, shared
 
 # Metrics Collection for baseline (10,000) Runs
-def run_baseline_simulation(num_runs: int = 1000) -> Dict[str, List]:
+def run_baseline_simulation(num_runs: int = 1000) -> Dict[str, List]: # comment above says 10k but this defaults to 1k? - pending
     metrics = {
         'fake_reach': [], 'real_reach': [],
         'fake_peak_round': [], 'real_peak_round': [],
@@ -246,13 +266,14 @@ def plot_baseline_results(metrics: Dict[str, List]):
 
 # Main Execution
 if __name__ == "__main__":
-    baseline_metrics = run_baseline_simulation(num_runs=10000)
+    num_runs = 1000
+    baseline_metrics = run_baseline_simulation(num_runs)
     plot_baseline_results(baseline_metrics)
 
     #print metrics
     #print(baseline_metrics)
     # Print summary statistics
-    print("\nBaseline Statistics (1,000 runs):")
+    print(f"\nBaseline Statistics ({num_runs:,} runs):")
     print(f"Fake News - Avg Reach: {np.mean(baseline_metrics['fake_reach']):.1f} ± {np.std(baseline_metrics['fake_reach']):.1f}")
     print(f"Real News - Avg Reach: {np.mean(baseline_metrics['real_reach']):.1f} ± {np.std(baseline_metrics['real_reach']):.1f}")
     print(f"Fake Peak Round: {np.median(baseline_metrics['fake_peak_round'])} (IQR {np.percentile(baseline_metrics['fake_peak_round'], 25)}-{np.percentile(baseline_metrics['fake_peak_round'], 75)})")
