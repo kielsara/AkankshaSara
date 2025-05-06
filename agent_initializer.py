@@ -14,7 +14,7 @@ class Agent:
         self.is_fact_checker = False
         self.is_susceptible = False
         self.number_of_friends = 0
-        self.belief_state = {'fake': False, 'real': False}
+        self.belief_state = None #(None/'fake'/'real')
         self.has_shared = {'fake': False, 'real': False}
         self.p_share_fake = 0.0
         self.p_share_real = 0.0

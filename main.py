@@ -31,7 +31,7 @@ def select_initial_seeds(agents, news_type):
     seeds = random.sample(list(agents.keys()), seed_count)
     #print(seeds)
     for uid in seeds:
-        agents[uid].belief_state[news_type] = True
+        agents[uid].belief_state = news_type
     return seeds
 
 
@@ -54,9 +54,10 @@ def simulate_spread(G: nx.Graph, agents: Dict[int, Agent], news_items: Dict[str,
         infected[news_type].update(seeds)
 
     # Run simulation rounds
-    for round_num in range(max_rounds): # 50 rounds initially
-        new_shares = {'fake': set(), 'real': set()}
+    for round_num in range(max_rounds): # 500 rounds initially
+        #new_shares = {'fake': set(), 'real': set()}
         current_events = schedule.pop(round_num, [])
+        random.shuffle(current_events)  # Randomize processing order to avoid bias
 
         for uid, news_type in current_events:
             agent = agents[uid]
@@ -69,8 +70,13 @@ def simulate_spread(G: nx.Graph, agents: Dict[int, Agent], news_items: Dict[str,
             # Propagate to neighbors
             for neighbor_id in G.neighbors(uid):
                 neighbor = agents[neighbor_id]
-                if neighbor.belief_state[news_type]: # check what needs to be done with the belief state, pending
-                    continue
+                # Check existing belief
+                if neighbor.belief_state is not None:
+                    continue  # Already believes something ( fake or real )
+
+                # if neighbor.belief_state[news_type]: # check what needs to be done with the belief state, pending
+                #     continue
+
                 trust = G[uid][neighbor_id]['trust']
                 # if news_items[news_type].is_flagged_fake and news_type == 'fake': # Instead of halting further spread globally, reduce local trust for flagged fake news. - pending remove comment
                 #     trust *= 0.3  # Cut effective trust, not transmission
@@ -81,18 +87,14 @@ def simulate_spread(G: nx.Graph, agents: Dict[int, Agent], news_items: Dict[str,
                 # if effective probability is below the threshold, news is not share by this neighbor and belief state is not changed
                 if random.random() < effective_probability: # if the effective probability of sharing is greater than a random threshold, then share as per the below logic
                     # update this logic in the document - pending
+                    # Fact-checker intervention
                     if news_type == 'fake' and neighbor.is_fact_checker:
                         if random.random() < p_fact_check:  #choose a random number between 0.0 and 1.0(exclusive), if the random falls within 50% chance of fact-checking, news will be flagged if fake
                             news_items['fake'].flagged = True
-                            continue
-                    '''
-                    pending 
-                    The belief_state and has_shared handling in the code might not be correctly implemented.
-                     For instance, when a neighbor receives news, their belief_state is set to True, but the code does
-                    not check if they already believe the other news type, which is important for Phase 3's competition aspect
-                    
-                    '''
-                    neighbor.belief_state[news_type] = True
+                            continue # fact-checkers won't share the news further, halting the spread entirely for this neighbor's path
+
+                    # Commit to believe current news if currently belief state is False for both the news_type
+                    neighbor.belief_state = news_type
                     infected[news_type].add(neighbor_id)
                     delay = random.randint(*(fake_delay if news_type == 'fake' else real_delay))
                     schedule[round_num + delay].append((neighbor_id, news_type))
@@ -121,12 +123,12 @@ def run_baseline_simulation(num_runs: int = 1000) -> Dict[str, List]:
 
         # Reset agent belief states and shared status
         for agent in agents.values():
-            agent.belief_state = {'fake': False, 'real': False}
+            agent.belief_state = None
             agent.has_shared = {'fake': False, 'real': False}
 
         # Initialize news items
         news_items = {
-            'fake': NewsItem("Fake News", is_fake=True),
+            'fake': NewsItem("Fake News", is_fake=True), #give some meaningful news title here - pending
             'real': NewsItem("Real News", is_fake=False)
         }
 
@@ -247,8 +249,10 @@ if __name__ == "__main__":
     baseline_metrics = run_baseline_simulation(num_runs=10000)
     plot_baseline_results(baseline_metrics)
 
+    #print metrics
+    #print(baseline_metrics)
     # Print summary statistics
-    print("\nBaseline Statistics (10,000 runs):")
+    print("\nBaseline Statistics (1,000 runs):")
     print(f"Fake News - Avg Reach: {np.mean(baseline_metrics['fake_reach']):.1f} ± {np.std(baseline_metrics['fake_reach']):.1f}")
     print(f"Real News - Avg Reach: {np.mean(baseline_metrics['real_reach']):.1f} ± {np.std(baseline_metrics['real_reach']):.1f}")
     print(f"Fake Peak Round: {np.median(baseline_metrics['fake_peak_round'])} (IQR {np.percentile(baseline_metrics['fake_peak_round'], 25)}-{np.percentile(baseline_metrics['fake_peak_round'], 75)})")
