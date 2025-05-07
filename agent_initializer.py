@@ -8,6 +8,7 @@ from collections import defaultdict
 import statistics
 from config import  *
 
+
 # Define agent roles and properties
 class Agent:
     def __init__(self, uid):
@@ -93,7 +94,7 @@ def assign_roles(G):
     #     else:
     #         degree_stats['normal'].append(deg)
     #
-    # print("\n📊 Degree Stats by Agent Type:")
+    # print("\n Degree Stats by Agent Type:")
     # for role, degs in degree_stats.items():
     #     print(f"{role:<25} count={len(degs):<4} mean={statistics.mean(degs):.2f}  max={max(degs)}  min={min(degs)}")
 

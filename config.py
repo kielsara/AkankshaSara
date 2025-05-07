@@ -30,6 +30,8 @@ p_real_normal = (0.06, 0.09)
 # === Fact-checking Intervention ===
 p_fact_check = 0.3  # probability a fact-checker flags fake news
 
+p_belief_revision = 1.0
+
 # === Share Delay Settings ===
 fake_delay_distribution = {
     1: 0.85,
