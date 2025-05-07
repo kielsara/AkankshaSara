@@ -24,13 +24,13 @@ class Agent:
         self.p_share_real = 0.0
 
 
-def assign_roles(G):
+def assign_roles(G,percent_fc=percent_fact_checkers):
     agents = {}
 
     # Top-level role counts
     num_influencers = int(percent_influencers * num_agents)
     num_skeptical = int(percent_skeptical * num_agents)
-    num_fact_checkers = int(percent_fact_checkers * num_skeptical)
+    num_fact_checkers = int(percent_fc * num_skeptical)
     num_susceptible = int(percent_susceptible * num_agents)
 
     # Rank nodes by degree (descending)
