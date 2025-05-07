@@ -12,7 +12,7 @@ max_rounds = 500
 # === Role Counts (Baseline) ===
 percent_influencers = 0.025
 percent_skeptical = 0.57
-percent_fact_checkers = 0.30
+percent_fact_checkers = 0.3
 percent_susceptible = 0.10  # percent of total agents who are susceptible
 percent_highly_susceptible_range = (0.05, 0.10)  # percent of susceptible users who are highly susceptible
 percent_super_spreader = 0.001  # percent of susceptible users who are super spreaders
@@ -43,6 +43,14 @@ real_delay_distribution = {
     12: 0.10,
     18: 0.05
 }
+
+#variants for hypothesis 2
+variant_config = {
+    'variant_A': False,  # Influencer-controlled seeding
+    'variant_B': False,  # Influencer delay boost
+    'variant_C': False   # Influencer trust boost
+}
+
 
 # === Network Structure Parameters ===
 num_communities = 5  # used in stochastic block model
