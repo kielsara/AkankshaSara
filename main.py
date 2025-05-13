@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 from collections import defaultdict
-from typing import List, Dict, List, Tuple
+from typing import List, Dict, List, Tuple, Any, Set
 #from typing import Dict, List, Tuple
 from config import  *
 from network_generator import *
@@ -15,7 +15,7 @@ from news_item import *
 from agent_initializer import *
 import pandas as pd
 from simulation import simulate_spread, initialize_p_shares
-
+from metrics import plot_belief_vs_share, plot_spread_comparison
 from collections import deque
 
 
@@ -210,9 +210,10 @@ def trace_influencer_paths(G, agents, news_items, infected):
 
 
 # Metrics Collection for baseline (1,000) Runs
-def run_baseline_simulation(num_runs: int = 1000, hypothesis=None) -> Tuple[Dict[str, List], Dict[str, Dict[str, float]]]:
-
-
+def run_baseline_simulation(num_runs: int = 1000, hypothesis=None) -> tuple[
+    dict[str | Any, list[Any] | Any], int | Any]:
+    stats = {'fake': [], 'real': []}
+    belief_revised_count = 0
     metrics = {
         'fake_reach': [], 'real_reach': [],
         'fake_peak_round': [], 'real_peak_round': [],
@@ -245,8 +246,7 @@ def run_baseline_simulation(num_runs: int = 1000, hypothesis=None) -> Tuple[Dict
         }
 
         # Run simulation for others
-        #remove shared from here and all other places, since we already have that count from news_item - pending
-        stats, infected, shared, final_beliefs, belief_revised_count = simulate_spread(G, agents, news_items, hypothesis=None)
+        stats, final_beliefs, belief_revised_count = simulate_spread(G, agents, news_items, hypothesis=None)
 
         #move this to h2.py file
         # if hypothesis == 'h2':
@@ -257,8 +257,8 @@ def run_baseline_simulation(num_runs: int = 1000, hypothesis=None) -> Tuple[Dict
         #     metrics['influencer_total_real'].append(influencer_total['real'])
 
         # Record metrics
-        metrics['fake_reach'].append(len(infected['fake']))
-        metrics['real_reach'].append(len(infected['real']))
+        metrics['fake_reach'].append(stats['fake'])
+        metrics['real_reach'].append(stats['real'])
         metrics['fake_shares'].append(news_items['fake'].shared_count)
         metrics['real_shares'].append(news_items['real'].shared_count)
         metrics['fake_peak_round'].append(np.argmax(np.diff(stats['fake'])) if len(stats['fake']) > 1 else 0)
@@ -266,7 +266,7 @@ def run_baseline_simulation(num_runs: int = 1000, hypothesis=None) -> Tuple[Dict
         metrics['fake_belief_count'].append((final_beliefs['fake']))
         metrics['real_belief_count'].append((final_beliefs['real']))
 
-    return metrics, stats, infected, shared, final_beliefs, belief_revised_count #remove shared from here and all other places, since we already have that count from news_item - pending
+    return metrics, belief_revised_count
 
 #move all viz to metrics file
 # Visualize network
@@ -406,15 +406,19 @@ if __name__ == "__main__":
     # plot_baseline_results(baseline_metrics)
 
     print("--- Running Baseline ---")
-    baseline_metrics, base_stats, base_infected, base_shared, base_final_beliefs, base_belief_revised_count, base_influencer_counts, base_influencer_total = run_baseline_simulation(num_runs, hypothesis=None)
+    baseline_metrics, base_belief_revised_count = run_baseline_simulation(num_runs, hypothesis=None)
     print("\nBaseline Results:")
     print(f"Average number of fake news believers: {np.mean(baseline_metrics['fake_belief_count']):.1f} ± {np.std(baseline_metrics['fake_belief_count']):.1f}")
     print(f"Average number of real news believers: {np.mean(baseline_metrics['real_belief_count']):.1f} ± {np.std(baseline_metrics['real_belief_count']):.1f}")
     print(f"Average number of fake news shares: {np.mean(baseline_metrics['fake_shares']):.1f} ± {np.std(baseline_metrics['fake_shares']):.1f}")
     print(f"Average number of real news shares: {np.mean(baseline_metrics['real_shares']):.1f} ± {np.std(baseline_metrics['real_shares']):.1f}")
 
-    #plot spread over time from stats for the baseline - pending
-    #plot a comparision between  total beliefs vs total shares for fake news for baseline - pending
+    #plot spread across 1000 runs for the baseline
+    plot_spread_comparison(baseline_metrics)
+    # plot a comparison between  total beliefs vs total shares for fake news
+    # plot_belief_vs_share(baseline_metrics)
+
+
 
     # test hypotheis 1
     #hypothesis1(num_runs=1000)

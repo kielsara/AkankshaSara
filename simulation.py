@@ -1,6 +1,6 @@
 import random
 from collections import defaultdict, deque
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List, Any, Set
 
 import numpy as np
 import networkx as nx
@@ -67,11 +67,11 @@ def simulate_spread(
     news_items: Dict[str, NewsItem],
     hypothesis=None,
     real_news_delay=0
-) -> Tuple[Dict, Dict, Dict, Dict, int]:
+) -> tuple[dict[str, list[Any]], dict[str, int], int | Any]:
     schedule = defaultdict(list) #e.g - { 7 :[ ( 1239, "real") ], 2 : [( 1100, "fake")]} Will first get updated with initial seed numbers and then later with neighbors
     stats = {'fake': [], 'real': []}
     infected = {'fake': set(), 'real': set()}
-    shared = {'fake': set(), 'real': set()}
+    #shared = {'fake': set(), 'real': set()}
     belief_revised_count = 0
 
     for news_type in ['fake', 'real']:  # Initialize seeds for both news types
@@ -92,7 +92,7 @@ def simulate_spread(
 
             # Agent shares the news now
             agent.has_shared[news_type] = True
-            shared[news_type].add(uid)
+            #shared[news_type].add(uid)
             news_items[news_type].shared_count += 1
 
             # Propagate to neighbors
@@ -150,5 +150,5 @@ def simulate_spread(
         elif agent.belief_state == 'real':
             final_beliefs['real'] += 1
 
-    # remove shared from here and all other places, since we already have that count from news_item - pending
-    return stats, infected, shared, final_beliefs, belief_revised_count
+
+    return stats, final_beliefs, belief_revised_count
