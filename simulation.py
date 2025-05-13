@@ -150,4 +150,5 @@ def simulate_spread(
         elif agent.belief_state == 'real':
             final_beliefs['real'] += 1
 
+    # remove shared from here and all other places, since we already have that count from news_item - pending
     return stats, infected, shared, final_beliefs, belief_revised_count
