@@ -51,9 +51,8 @@ variant_config = {
     'variant_C': False   # Influencer trust boost
 }
 
-
 # === Network Structure Parameters ===
-num_communities = 5  # used in stochastic block model
+num_communities = 5
 rewire_fraction = 0.1  # The probability of rewiring each edge in Watts-Strogatz model
 ba_attachment = 3  # number of edges, each new node attachs to in Barabasi-Albert model
 k_neighbors = 10 # Each node is joined with its k nearest neighbors in Watts-Strogatz model
