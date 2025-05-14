@@ -23,13 +23,8 @@ def run_baseline_simulation(num_runs: int = 1000, hypothesis=None, percent_fc=pe
         'fake_peak_round': [], 'real_peak_round': [],
         'fake_shares': [], 'real_shares': [],
         'fake_belief_count': [], 'real_belief_count': [],
-        'influencer_counts_fake': [], 'influencer_counts_real': [],
-        'influencer_total_fake': [], 'influencer_total_real': []
+        'influencer_reach_fake': [], 'normal_reach_fake': []
     }
-
-
-    influencer_origin_counts = {'fake': 0, 'real': 0}
-    influencer_total_spread = {'fake': 0, 'real': 0}
 
     for run_num in range(num_runs):
         # Re-initialize network and agents for each run
@@ -50,14 +45,7 @@ def run_baseline_simulation(num_runs: int = 1000, hypothesis=None, percent_fc=pe
         }
 
         # Run simulation for others
-        stats, final_beliefs, belief_revised_count, influencer_origin_counts, influencer_total_spread = simulate_spread(G, agents, news_items, hypothesis=hypothesis, variant_flag_dict=variant_flag, real_news_delay=real_news_delay)
-
-        if hypothesis == 'h2' and influencer_origin_counts and influencer_total_spread:
-            #influencer_counts, influencer_total = trace_influencer_paths(G, agents, news_items, infected)
-            metrics['influencer_counts_fake'].append(influencer_origin_counts['fake'])
-            metrics['influencer_counts_real'].append(influencer_origin_counts['real'])
-            metrics['influencer_total_fake'].append(influencer_total_spread['fake'])
-            metrics['influencer_total_real'].append(influencer_total_spread['real'])
+        stats, final_beliefs, belief_revised_count, influencer_impact = simulate_spread(G, agents, news_items, hypothesis=hypothesis, variant_flag_dict=variant_flag, real_news_delay=real_news_delay)
 
         # Record metrics
         metrics['fake_reach'].append(stats['fake'])
@@ -68,6 +56,8 @@ def run_baseline_simulation(num_runs: int = 1000, hypothesis=None, percent_fc=pe
         metrics['real_peak_round'].append(np.argmax(np.diff(stats['real'])) if len(stats['real']) > 1 else 0)
         metrics['fake_belief_count'].append((final_beliefs['fake']))
         metrics['real_belief_count'].append((final_beliefs['real']))
+        metrics['influencer_reach_fake'].append(influencer_impact['influencer'])
+        metrics['normal_reach_fake'].append(influencer_impact['normal'])
 
         belief_revised_counts.append(belief_revised_count)
 

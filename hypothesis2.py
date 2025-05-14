@@ -10,7 +10,7 @@ def run_variant(name: str, variant_flags: dict, hypothesis: str = 'h2'):
 
     # Set global config for variant
    # variant_config.update(variant_flags)
-    #influencer_stats = []
+    influencer_stats = []
 
     h2_metrics, h2_belief_revised_count = run_baseline_simulation(num_runs=1000, hypothesis=hypothesis, variant_flag=variant_flags)
 
@@ -24,16 +24,24 @@ def run_variant(name: str, variant_flags: dict, hypothesis: str = 'h2'):
     print(f"Fake News - Avg Reach: {np.mean(final_reach_fake):.1f} ± {np.std(final_reach_fake):.1f}")
     print(f"Real News - Avg Reach: {np.mean(final_reach_real):.1f} ± {np.std(final_reach_real):.1f}")
 
+    if variant_flags['variant_A']:
+        print(f"\n{name} - Influencer Impact when variant A - Increasing the number of initial influencer seeds")
+        print(f"Avg reach of fake news from influencers: {np.mean(h2_metrics['influencer_reach_fake']):.1f} ± {np.std(h2_metrics['influencer_reach_fake']):.1f}")
+        print(f"Avg reach of fake news from normal users: {np.mean(h2_metrics['normal_reach_fake']):.1f} ± {np.std(h2_metrics['normal_reach_fake']):.1f}")
+
     # Store aggregated results
     result = {
         'final_fake': np.mean(h2_metrics['fake_belief_count']),
         'final_real': np.mean(h2_metrics['real_belief_count']),
         'shared_fake': np.mean(h2_metrics['fake_shares']),
         'shared_real': np.mean(h2_metrics['real_shares']),
-        'inf_origin_fake': np.mean(h2_metrics['influencer_counts_fake']),
-        'inf_origin_real': np.mean(h2_metrics['influencer_counts_real']),
-        'inf_total_fake': np.mean(h2_metrics['influencer_total_fake']),
-        'inf_total_real': np.mean(h2_metrics['influencer_total_real']),
+        'influencer_reach_fake': h2_metrics['influencer_reach_fake'],
+        'normal_reach_fake': h2_metrics['normal_reach_fake']
+        # 'inf_origin_fake': np.mean(h2_metrics['influencer_counts_fake']),
+        # 'inf_origin_real': np.mean(h2_metrics['influencer_counts_real']),
+        # 'inf_total_fake': np.mean(h2_metrics['influencer_total_fake']),
+        # 'inf_total_real': np.mean(h2_metrics['influencer_total_real']),
+
     }
     return name, result
 
@@ -41,9 +49,9 @@ def run_variant(name: str, variant_flags: dict, hypothesis: str = 'h2'):
 def run_all_variants():
     variants = {
         'baseline': {'variant_A': False, 'variant_B': False, 'variant_C': False},
-        #'variant_A': {'variant_A': True, 'variant_B': False, 'variant_C': False},
-        # 'variant_B': {'variant_A': False, 'variant_B': True, 'variant_C': False},
-        # 'variant_C': {'variant_A': False, 'variant_B': False, 'variant_C': True},
+        'variant_AB': {'variant_A': True, 'variant_B': True, 'variant_C': False},
+        'variant_BC': {'variant_A': False, 'variant_B': True, 'variant_C': True},
+        'variant_CA': {'variant_A': True, 'variant_B': False, 'variant_C': True},
         'variant_ABC': {'variant_A': True, 'variant_B': True, 'variant_C': True},
     }
 

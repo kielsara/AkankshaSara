@@ -46,34 +46,6 @@ def select_initial_seeds_variant(agents, news_type):
         agents[uid].belief_state = news_type
     return seeds
 
-
-# --- Influence tracing and metrics ---
-def trace_influencer_paths(G, agents, news_items, infected):
-    influencer_origin_counts = {'fake': 0, 'real': 0}
-    influencer_total_spread = {'fake': 0, 'real': 0}
-
-    for news_type in ['fake', 'real']:
-        visited = set()
-        queue = deque()
-
-        for uid in infected[news_type]:
-            if agents[uid].is_influencer:
-                queue.append((uid, 0))
-                visited.add(uid)
-
-        while queue:
-            current, depth = queue.popleft()
-            influencer_total_spread[news_type] += 1
-            for neighbor in G.neighbors(current):
-                if neighbor not in visited and agents[neighbor].belief_state == news_type:
-                    visited.add(neighbor)
-                    queue.append((neighbor, depth + 1))
-
-        influencer_origin_counts[news_type] = len(visited)
-
-    return influencer_origin_counts, influencer_total_spread
-
-
 def sample_delay_from_distribution(delay_dist: Dict[int, float], agent, news_type,variant_flag_dict=variant_config) -> int:
 
     # Delay sampling with influencer override (Variant B)
@@ -105,19 +77,23 @@ def simulate_spread(
     hypothesis=None,
     real_news_delay=0,
     variant_flag_dict: Dict[str, Any] = variant_config,
-) -> tuple[dict[str, list[Any]], dict[str, int], int | Any, dict[str, int] | int, dict[str, int] | int]:
+) -> tuple[dict[str, list[Any]], dict[str, int], int | Any, dict[str, int] | None]:
     schedule = defaultdict(list) #e.g - { 7 :[ ( 1239, "real") ], 2 : [( 1100, "fake")]} Will first get updated with initial seed numbers and then later with neighbors
     stats = {'fake': [], 'real': []}
     infected = {'fake': set(), 'real': set()}
-    #shared = {'fake': set(), 'real': set()}
     belief_revised_count = 0
+    source_map = {}  # uid -> 'influencer' or 'normal'
 
     for news_type in ['fake', 'real']:  # Initialize seeds for both news types
         delay_round = real_news_delay if news_type == 'real' and hypothesis == 'h3' else 0 #for hypothesis 3, add a delay for real news
         if hypothesis == 'h2' and variant_flag_dict['variant_A']:
             seeds = select_initial_seeds_variant(agents, news_type)
+            # Track origin type for seeds
+            for uid in seeds:
+                source_map[uid] = 'influencer' if agents[uid].is_influencer else 'normal'
         else:
             seeds = select_initial_seeds(agents, news_type)
+
         schedule_initial_shares(seeds, agents, news_type, schedule, delay_round, variant_flag_dict=variant_flag_dict)
         infected[news_type].update(seeds)
 
@@ -144,7 +120,7 @@ def simulate_spread(
 
                     #Check for hypothesis 3
                     if hypothesis == 'h3' and neighbor.belief_state != news_type:
-                        #if this agent is a fact-checker who already believes in a news but received a conflicting news
+                        #if this agent already believes in a news but received a conflicting news
                         #they may check the fact and change their belief state
                         revision_chance = p_belief_revision if neighbor.is_fact_checker else 0.25
                         if random.random() < revision_chance:
@@ -174,6 +150,8 @@ def simulate_spread(
                     # Commit to believe the current news if this neighbor doesn't believe any news yet
                     neighbor.belief_state = news_type
                     infected[news_type].add(neighbor_id)
+                    if hypothesis == 'h2' and variant_flag_dict['variant_A']:
+                        source_map[neighbor_id] = source_map.get(uid, 'unknown')  # Inherit source for comparison during H2
                     delay = sample_delay_from_distribution(
                         fake_delay_distribution if news_type == 'fake' else real_delay_distribution,
                         neighbor, news_type, variant_flag_dict=variant_flag_dict
@@ -185,10 +163,12 @@ def simulate_spread(
         if not schedule: #spread is over
             break
 
-    influencer_origin_counts,  influencer_total_spread = None,None
-
+    influencer_impact = {'influencer': 0, 'normal': 0}
     if hypothesis == 'h2':
-        influencer_origin_counts, influencer_total_spread = trace_influencer_paths(G, agents, news_items, infected)
+        influencer_impact = {
+            'influencer': sum(1 for uid in infected['fake'] if source_map.get(uid) == 'influencer'),
+            'normal': sum(1 for uid in infected['fake'] if source_map.get(uid) == 'normal')
+        }
     final_beliefs = {'fake': 0, 'real': 0} #final belief count for each type of news at the end of each simulation
     for agent in agents.values():
         if agent.belief_state == 'fake':
@@ -197,6 +177,6 @@ def simulate_spread(
             final_beliefs['real'] += 1
 
 
-    return stats, final_beliefs, belief_revised_count, influencer_origin_counts, influencer_total_spread
+    return stats, final_beliefs, belief_revised_count, influencer_impact
 
 
