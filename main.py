@@ -17,9 +17,10 @@ import pandas as pd
 from simulation import simulate_spread, initialize_p_shares
 from metrics import plot_belief_vs_share, plot_spread_comparison
 from collections import deque
+from baseline_run import run_baseline_simulation
+from Hypothesis1 import run_hypothesis1_experiment, visualize_h1_results
 
 
-#
 # # Phase 2 logic
 # def initialize_p_shares(agents: Dict[int, Agent]):
 #     for agent in agents.values():
@@ -209,64 +210,64 @@ def trace_influencer_paths(G, agents, news_items, infected):
 #     return stats, infected, shared, final_beliefs, belief_revised_count
 
 
-# Metrics Collection for baseline (1,000) Runs
-def run_baseline_simulation(num_runs: int = 1000, hypothesis=None) -> tuple[
-    dict[str | Any, list[Any] | Any], int | Any]:
-    stats = {'fake': [], 'real': []}
-    belief_revised_count = 0
-    metrics = {
-        'fake_reach': [], 'real_reach': [],
-        'fake_peak_round': [], 'real_peak_round': [],
-        'fake_shares': [], 'real_shares': [],
-        'fake_belief_count': [], 'real_belief_count': [],
-        'influencer_counts_fake': [], 'influencer_counts_real': [],
-        'influencer_total_fake': [], 'influencer_total_real': []
-    }
-
-    #move this to h2
-    # influencer_counts = {'fake': 0, 'real': 0}
-    # influencer_total = {'fake': 0, 'real': 0}
-
-    for run_num in range(num_runs):
-        # Re-initialize network and agents for each run
-        G = create_social_network(num_agents, num_communities, k_neighbors)
-        agents = assign_roles(G)
-        assign_trust_levels(G, num_communities)
-        initialize_p_shares(agents)
-
-        # Reset agent belief states and shared status
-        for agent in agents.values():
-            agent.belief_state = None
-            agent.has_shared = {'fake': False, 'real': False}
-
-        # Initialize news items
-        news_items = {
-            'fake': NewsItem("Fake News", is_fake=True),
-            'real': NewsItem("Real News", is_fake=False)
-        }
-
-        # Run simulation for others
-        stats, final_beliefs, belief_revised_count = simulate_spread(G, agents, news_items, hypothesis=None)
-
-        #move this to h2.py file
-        # if hypothesis == 'h2':
-        #     influencer_counts, influencer_total = trace_influencer_paths(G, agents, news_items, infected)
-        #     metrics['influencer_counts_fake'].append(influencer_counts['fake'])
-        #     metrics['influencer_counts_real'].append(influencer_counts['real'])
-        #     metrics['influencer_total_fake'].append(influencer_total['fake'])
-        #     metrics['influencer_total_real'].append(influencer_total['real'])
-
-        # Record metrics
-        metrics['fake_reach'].append(stats['fake'])
-        metrics['real_reach'].append(stats['real'])
-        metrics['fake_shares'].append(news_items['fake'].shared_count)
-        metrics['real_shares'].append(news_items['real'].shared_count)
-        metrics['fake_peak_round'].append(np.argmax(np.diff(stats['fake'])) if len(stats['fake']) > 1 else 0)
-        metrics['real_peak_round'].append(np.argmax(np.diff(stats['real'])) if len(stats['real']) > 1 else 0)
-        metrics['fake_belief_count'].append((final_beliefs['fake']))
-        metrics['real_belief_count'].append((final_beliefs['real']))
-
-    return metrics, belief_revised_count
+# # Metrics Collection for baseline (1,000) Runs
+# def run_baseline_simulation(num_runs: int = 1000, hypothesis=None, percent_fc=percent_fact_checkers) -> tuple[
+#     dict[str | Any, list[Any] | Any], int | Any]:
+#     stats = {'fake': [], 'real': []}
+#     belief_revised_count = 0
+#     metrics = {
+#         'fake_reach': [], 'real_reach': [],
+#         'fake_peak_round': [], 'real_peak_round': [],
+#         'fake_shares': [], 'real_shares': [],
+#         'fake_belief_count': [], 'real_belief_count': [],
+#         'influencer_counts_fake': [], 'influencer_counts_real': [],
+#         'influencer_total_fake': [], 'influencer_total_real': []
+#     }
+#
+#     #move this to h2
+#     # influencer_counts = {'fake': 0, 'real': 0}
+#     # influencer_total = {'fake': 0, 'real': 0}
+#
+#     for run_num in range(num_runs):
+#         # Re-initialize network and agents for each run
+#         G = create_social_network(num_agents, num_communities, k_neighbors)
+#         agents = assign_roles(G,percent_fc=percent_fc)
+#         assign_trust_levels(G, num_communities)
+#         initialize_p_shares(agents)
+#
+#         # Reset agent belief states and shared status
+#         for agent in agents.values():
+#             agent.belief_state = None
+#             agent.has_shared = {'fake': False, 'real': False}
+#
+#         # Initialize news items
+#         news_items = {
+#             'fake': NewsItem("Fake News", is_fake=True),
+#             'real': NewsItem("Real News", is_fake=False)
+#         }
+#
+#         # Run simulation for others
+#         stats, final_beliefs, belief_revised_count = simulate_spread(G, agents, news_items, hypothesis=None)
+#
+#         #move this to h2.py file
+#         # if hypothesis == 'h2':
+#         #     influencer_counts, influencer_total = trace_influencer_paths(G, agents, news_items, infected)
+#         #     metrics['influencer_counts_fake'].append(influencer_counts['fake'])
+#         #     metrics['influencer_counts_real'].append(influencer_counts['real'])
+#         #     metrics['influencer_total_fake'].append(influencer_total['fake'])
+#         #     metrics['influencer_total_real'].append(influencer_total['real'])
+#
+#         # Record metrics
+#         metrics['fake_reach'].append(stats['fake'])
+#         metrics['real_reach'].append(stats['real'])
+#         metrics['fake_shares'].append(news_items['fake'].shared_count)
+#         metrics['real_shares'].append(news_items['real'].shared_count)
+#         metrics['fake_peak_round'].append(np.argmax(np.diff(stats['fake'])) if len(stats['fake']) > 1 else 0)
+#         metrics['real_peak_round'].append(np.argmax(np.diff(stats['real'])) if len(stats['real']) > 1 else 0)
+#         metrics['fake_belief_count'].append((final_beliefs['fake']))
+#         metrics['real_belief_count'].append((final_beliefs['real']))
+#
+#     return metrics, belief_revised_count
 
 #move all viz to metrics file
 # Visualize network
@@ -407,21 +408,28 @@ if __name__ == "__main__":
 
     print("--- Running Baseline ---")
     baseline_metrics, base_belief_revised_count = run_baseline_simulation(num_runs, hypothesis=None)
-    print("\nBaseline Results:")
-    print(f"Average number of fake news believers: {np.mean(baseline_metrics['fake_belief_count']):.1f} ± {np.std(baseline_metrics['fake_belief_count']):.1f}")
-    print(f"Average number of real news believers: {np.mean(baseline_metrics['real_belief_count']):.1f} ± {np.std(baseline_metrics['real_belief_count']):.1f}")
-    print(f"Average number of fake news shares: {np.mean(baseline_metrics['fake_shares']):.1f} ± {np.std(baseline_metrics['fake_shares']):.1f}")
-    print(f"Average number of real news shares: {np.mean(baseline_metrics['real_shares']):.1f} ± {np.std(baseline_metrics['real_shares']):.1f}")
 
+    final_reach_fake = [run[-1] for run in baseline_metrics['fake_reach'] if len(run) > 0]
+    #average_fake_reach = np.mean(final_reach_fake)
+    final_reach_real = [run[-1] for run in baseline_metrics['real_reach'] if len(run) > 0]
+    #average_real_reach = np.mean(final_reach_real)
+
+    print("\nBaseline Results:")
+    #print(f"Average number of fake news believers: {np.mean(baseline_metrics['fake_belief_count']):.1f} ± {np.std(baseline_metrics['fake_belief_count']):.1f}")
+    #print(f"Average number of real news believers: {np.mean(baseline_metrics['real_belief_count']):.1f} ± {np.std(baseline_metrics['real_belief_count']):.1f}")
+    print(f"Average number of fake news shares: {np.mean(baseline_metrics['fake_shares']):.1f} ± {np.std(baseline_metrics['fake_shares']):.1f}")
+    print(f"Average number of real news shares: {np.mean(baseline_metrics['real_shares']):.1f}± {np.std(baseline_metrics['real_shares']):.1f}")
+    print(f"Fake News - Avg Reach: {np.mean(final_reach_fake):.1f} ± {np.std(final_reach_fake):.1f}")
+    print(f"Real News - Avg Reach: {np.mean(final_reach_real):.1f} ± {np.std(final_reach_real):.1f}")
     #plot spread across 1000 runs for the baseline
     plot_spread_comparison(baseline_metrics)
     # plot a comparison between  total beliefs vs total shares for fake news
     # plot_belief_vs_share(baseline_metrics)
 
-
-
-    # test hypotheis 1
-    #hypothesis1(num_runs=1000)
+    print("\n--- Running Hypothesis 1: Impact of having more fact-checkers in the network ---")
+    fact_checker_variants = [0.5, 0.7, 0.9]
+    h1_results = run_hypothesis1_experiment(fact_checker_variants=fact_checker_variants)
+    visualize_h1_results(h1_results)
 
     #test hypothesis 2
     # original_variants = variant_config

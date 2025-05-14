@@ -12,16 +12,16 @@ max_rounds = 500 #max rounds if the spread doesn't die out on its own
 # === Role Counts (Baseline) ===
 percent_influencers = 0.025
 percent_skeptical = 0.57
-percent_fact_checkers = 0.3
+percent_fact_checkers = 0.30
 percent_susceptible = 0.10  # percent of total agents who are susceptible
 percent_highly_susceptible_range = (0.05, 0.10)  # percent of susceptible users who are highly susceptible
 percent_super_spreader = 0.001  # percent of susceptible users who are super spreaders
 
 # === News Sharing Probabilities (Fake News) ===
-p_fake_fact_checker = (0.03, 0.07) # probability of sharing fake news by a fact-checker
-p_fake_susceptible = (0.17, 0.19)
-p_fake_highly_susceptible = (0.20, 0.22)
-p_fake_super_spreader = (0.5, 0.8)
+p_fake_fact_checker = (0.05, 0.07) # probability of sharing fake news by a fact-checker
+p_fake_susceptible = (0.20, 0.30)
+p_fake_highly_susceptible = (0.50, 0.70)
+p_fake_super_spreader = (0.70, 1.0)
 p_fake_normal = (0.11, 0.16) # probability of sharing fake news by an agent who is neither susceptible not skeptical
 
 # === News Sharing Probabilities (Factual News) ===
