@@ -2,21 +2,8 @@
 main.py
 '''
 
-import networkx as nx
-import matplotlib.pyplot as plt
-import numpy as np
-import random
-from collections import defaultdict
-from typing import List, Dict, List, Tuple, Any, Set
-#from typing import Dict, List, Tuple
-from config import  *
-from network_generator import *
-from news_item import *
 from agent_initializer import *
-import pandas as pd
-from simulation import simulate_spread, initialize_p_shares
 from metrics import plot_belief_vs_share, plot_spread_comparison, visualize_h1_results, visualize_h2_results, visualize_h3_results
-from collections import deque
 from baseline_run import run_baseline_simulation
 from Hypothesis1 import run_hypothesis1_experiment
 from hypothesis2 import run_all_variants

@@ -1,11 +1,4 @@
-
-import networkx as nx
-import matplotlib.pyplot as plt
-import numpy as np
-import random
-from collections import defaultdict
 from typing import List, Dict, List, Tuple, Any, Set
-#from typing import Dict, List, Tuple
 from config import  *
 from network_generator import *
 from news_item import *

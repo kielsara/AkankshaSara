@@ -1,7 +1,5 @@
-import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
-from config import *
 
 def plot_spread_comparison(metrics):
     # Extract final reach from each run (last element of each round stats)

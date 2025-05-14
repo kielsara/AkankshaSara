@@ -1,16 +1,7 @@
 import numpy as np
-from config import *
-from network_generator import create_social_network
-from agent_initializer import assign_roles, assign_trust_levels
-from simulation import initialize_p_shares, simulate_spread
-from news_item import NewsItem
 from baseline_run import run_baseline_simulation
 
 def run_variant(name: str, variant_flags: dict, hypothesis: str = 'h2'):
-
-    # Set global config for variant
-   # variant_config.update(variant_flags)
-    influencer_stats = []
 
     h2_metrics, h2_belief_revised_count = run_baseline_simulation(num_runs=1000, hypothesis=hypothesis, variant_flag=variant_flags)
 
@@ -37,11 +28,6 @@ def run_variant(name: str, variant_flags: dict, hypothesis: str = 'h2'):
         'shared_real': np.mean(h2_metrics['real_shares']),
         'influencer_reach_fake': h2_metrics['influencer_reach_fake'],
         'normal_reach_fake': h2_metrics['normal_reach_fake']
-        # 'inf_origin_fake': np.mean(h2_metrics['influencer_counts_fake']),
-        # 'inf_origin_real': np.mean(h2_metrics['influencer_counts_real']),
-        # 'inf_total_fake': np.mean(h2_metrics['influencer_total_fake']),
-        # 'inf_total_real': np.mean(h2_metrics['influencer_total_real']),
-
     }
     return name, result
 

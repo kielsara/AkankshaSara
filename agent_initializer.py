@@ -4,8 +4,6 @@ agent_initializer.py
 
 import random
 import numpy as np
-from collections import defaultdict
-import statistics
 from config import  *
 
 
@@ -78,26 +76,6 @@ def assign_roles(G,percent_fc=percent_fact_checkers):
                 agent.susceptible_type = 'normal'
 
         agents[node] = agent
-
-    # validating that influencers have highest degrees, can convert this to debug - pending
-    # Collect degrees by agent type
-    # degree_stats = defaultdict(list)
-    #
-    # for node, agent in agents.items():
-    #     deg = agent.number_of_friends
-    #     if agent.is_influencer:
-    #         degree_stats['influencer'].append(deg)
-    #     elif agent.is_fact_checker:
-    #         degree_stats['fact_checker'].append(deg)
-    #     elif agent.is_susceptible:
-    #         degree_stats[f'susceptible_{agent.susceptible_type}'].append(deg)
-    #     else:
-    #         degree_stats['normal'].append(deg)
-    #
-    # print("\n Degree Stats by Agent Type:")
-    # for role, degs in degree_stats.items():
-    #     print(f"{role:<25} count={len(degs):<4} mean={statistics.mean(degs):.2f}  max={max(degs)}  min={min(degs)}")
-
     return agents
 
 

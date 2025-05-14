@@ -1,10 +1,8 @@
 import random
 from collections import defaultdict, deque
 from typing import Dict, Tuple, List, Any, Set
-
 import numpy as np
 import networkx as nx
-
 from config import *
 from news_item import NewsItem
 from agent_initializer import Agent
@@ -60,7 +58,7 @@ def sample_delay_from_distribution(delay_dist: Dict[int, float], agent, news_typ
     return max(delay_dist.keys()) # fallback
 
 
-def schedule_initial_shares(seeds, agents, news_type, schedule, delay_offset=0,variant_flag_dict=variant_config) -> int:
+def schedule_initial_shares(seeds, agents, news_type, schedule, delay_offset=0,variant_flag_dict=variant_config):
     dist = fake_delay_distribution if news_type == 'fake' else real_delay_distribution
     for uid in seeds:
         delay = sample_delay_from_distribution(dist, agents[uid], news_type,variant_flag_dict=variant_flag_dict)
@@ -109,7 +107,6 @@ def simulate_spread(
 
             # Agent shares the news now
             agent.has_shared[news_type] = True
-            #shared[news_type].add(uid)
             news_items[news_type].shared_count += 1
 
             # Propagate to neighbors
@@ -158,12 +155,13 @@ def simulate_spread(
                     )
                     schedule[round_num + delay].append((neighbor_id, news_type))
 
-        stats['fake'].append(len(infected['fake'])) #how many agents got infected with the fake news in current run
-        stats['real'].append(len(infected['real'])) #how many agents got infected with the real news in current run
+        stats['fake'].append(len(infected['fake'])) #how many agents got infected with the fake news in current round
+        stats['real'].append(len(infected['real'])) #how many agents got infected with the real news in current round
         if not schedule: #spread is over
             break
 
     influencer_impact = {'influencer': 0, 'normal': 0}
+    # track how many users got infected with the fake news when source of information was an influencer
     if hypothesis == 'h2':
         influencer_impact = {
             'influencer': sum(1 for uid in infected['fake'] if source_map.get(uid) == 'influencer'),
