@@ -23,7 +23,7 @@ def run_hypothesis1_experiment(fact_checker_variants, num_runs=1000):
         # fake_reaches = []
         # real_reaches = []
 
-        h1_metrics, h1_belief_revised_count = run_baseline_simulation(num_runs, hypothesis=None, percent_fc=fc_pct)
+        h1_metrics, h1_belief_revised_count = run_baseline_simulation(num_runs, hypothesis='h1', percent_fc=fc_pct)
 
         # Collect results
         final_reach_fake = [run[-1] for run in h1_metrics['fake_reach'] if len(run) > 0]
@@ -79,18 +79,4 @@ def run_hypothesis1_experiment(fact_checker_variants, num_runs=1000):
 
     return results
 
-def visualize_h1_results(results):
-    x = [r['fc_percent'] for r in results]
-    fake_y = [r['fake_mean'] for r in results]
-    real_y = [r['real_mean'] for r in results]
 
-    plt.figure(figsize=(10, 5))
-    plt.plot(x, fake_y, label='Fake News Reach', marker='o')
-    plt.plot(x, real_y, label='Real News Reach', marker='s')
-    plt.xlabel('% Fact-Checkers')
-    plt.ylabel('Average Reach')
-    plt.title('Impact of Fact-Checker Percentage on News Reach')
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()

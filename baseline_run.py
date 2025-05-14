@@ -14,10 +14,10 @@ from simulation import simulate_spread, initialize_p_shares
 
 
 # Metrics Collection for baseline (1,000) Runs
-def run_baseline_simulation(num_runs: int = 1000, hypothesis=None, percent_fc=percent_fact_checkers) -> tuple[
-    dict[str | Any, list[Any] | Any], int | Any]:
+def run_baseline_simulation(num_runs: int = 1000, hypothesis=None, percent_fc=percent_fact_checkers, variant_flag=variant_config,real_news_delay=0) -> \
+        tuple[dict[str | Any, list[Any] | Any], int | Any]:
     stats = {'fake': [], 'real': []}
-    belief_revised_count = 0
+    belief_revised_counts = []
     metrics = {
         'fake_reach': [], 'real_reach': [],
         'fake_peak_round': [], 'real_peak_round': [],
@@ -27,9 +27,9 @@ def run_baseline_simulation(num_runs: int = 1000, hypothesis=None, percent_fc=pe
         'influencer_total_fake': [], 'influencer_total_real': []
     }
 
-    #move this to h2
-    # influencer_counts = {'fake': 0, 'real': 0}
-    # influencer_total = {'fake': 0, 'real': 0}
+
+    influencer_origin_counts = {'fake': 0, 'real': 0}
+    influencer_total_spread = {'fake': 0, 'real': 0}
 
     for run_num in range(num_runs):
         # Re-initialize network and agents for each run
@@ -50,15 +50,14 @@ def run_baseline_simulation(num_runs: int = 1000, hypothesis=None, percent_fc=pe
         }
 
         # Run simulation for others
-        stats, final_beliefs, belief_revised_count = simulate_spread(G, agents, news_items, hypothesis=None)
+        stats, final_beliefs, belief_revised_count, influencer_origin_counts, influencer_total_spread = simulate_spread(G, agents, news_items, hypothesis=hypothesis, variant_flag_dict=variant_flag, real_news_delay=real_news_delay)
 
-        #move this to h2.py file
-        # if hypothesis == 'h2':
-        #     influencer_counts, influencer_total = trace_influencer_paths(G, agents, news_items, infected)
-        #     metrics['influencer_counts_fake'].append(influencer_counts['fake'])
-        #     metrics['influencer_counts_real'].append(influencer_counts['real'])
-        #     metrics['influencer_total_fake'].append(influencer_total['fake'])
-        #     metrics['influencer_total_real'].append(influencer_total['real'])
+        if hypothesis == 'h2' and influencer_origin_counts and influencer_total_spread:
+            #influencer_counts, influencer_total = trace_influencer_paths(G, agents, news_items, infected)
+            metrics['influencer_counts_fake'].append(influencer_origin_counts['fake'])
+            metrics['influencer_counts_real'].append(influencer_origin_counts['real'])
+            metrics['influencer_total_fake'].append(influencer_total_spread['fake'])
+            metrics['influencer_total_real'].append(influencer_total_spread['real'])
 
         # Record metrics
         metrics['fake_reach'].append(stats['fake'])
@@ -70,4 +69,6 @@ def run_baseline_simulation(num_runs: int = 1000, hypothesis=None, percent_fc=pe
         metrics['fake_belief_count'].append((final_beliefs['fake']))
         metrics['real_belief_count'].append((final_beliefs['real']))
 
-    return metrics, belief_revised_count
+        belief_revised_counts.append(belief_revised_count)
+
+    return metrics, belief_revised_counts
