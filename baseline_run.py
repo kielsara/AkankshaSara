@@ -21,7 +21,8 @@ from simulation import simulate_spread, initialize_p_shares
 
 # Metrics Collection for baseline (1,000) Runs
 def run_baseline_simulation(num_runs: int = 1000, hypothesis: str | None = None, percent_fc: float = percent_fact_checkers,
-    variant_flag: Dict[str, bool] = variant_config, real_news_delay: int = 0) -> Tuple[Dict[str, List[Any]], int]:
+    variant_flag: Dict[str, bool] = variant_config, real_news_delay: int = 0) -> tuple[
+    dict[str, list[Any]], list[int | Any]]:
     """
     Executes multiple Monte Carlo simulation runs using default parameters
     to establish a baseline for spread dynamics.
