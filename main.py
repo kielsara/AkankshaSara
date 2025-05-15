@@ -1,13 +1,36 @@
 '''
 main.py
+
+This is the primary execution script for running the full misinformation simulation framework.
+It sequentially runs baseline and experimental simulations, collects metrics, and visualizes results
+to evaluate three core hypotheses.
+
+Execution Flow:
+1. Baseline Simulation:
+   - Runs the default misinformation and factual news spread across 1000 trials.
+   - Reports average reach, peak rounds, and variability.
+
+2. Hypothesis 1:
+   - Tests the impact of increasing the percentage of fact-checkers in the network.
+   - Visualizes how spread is reduced as fact-checker density increases.
+
+3. Hypothesis 2:
+   - Explores influencer behavior and role in the spread (Variants A, B, C).
+   - Tracks how influencer-seeded misinformation differs from baseline.
+
+4. Hypothesis 3:
+   - Introduces competing factual news after a delay to test belief revision.
+   - Reports belief switches and comparative reach dynamics.
+
+Output includes summary statistics and plots to support analysis of misinformation dynamics.
 '''
 
 from agent_initializer import *
 from metrics import plot_belief_vs_share, plot_spread_comparison, visualize_h1_results, visualize_h2_results, visualize_h3_results
 from baseline_run import run_baseline_simulation
-from Hypothesis1 import run_hypothesis1_experiment
+from hypothesis1 import run_hypothesis1_experiment
 from hypothesis2 import run_all_variants
-from Hypothesis3 import run_hypothesis3
+from hypothesis3 import run_hypothesis3
 
 
 # Main Execution

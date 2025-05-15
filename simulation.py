@@ -1,3 +1,20 @@
+'''
+simulation.py
+
+This module contains the core simulation logic for modeling the spread of fake and real news
+through a synthetic social network. It includes functions for:
+- Initializing agents with probabilistic sharing behavior
+- Seeding news items into the network (standard or influencer-biased)
+- Scheduling shares with delay distributions
+- Simulating propagation rounds with belief updates and fact-checker interventions
+
+The simulation supports experimental variants aligned with specific hypotheses:
+- Hypothesis 2: Influencer-controlled dynamics (Variants A, B, C)
+- Hypothesis 3: Belief revision under competing news exposure
+
+Output metrics include infection counts, belief conversions, and influencer impact.
+'''
+
 import random
 from collections import defaultdict, deque
 from typing import Dict, Tuple, List, Any, Set
@@ -8,7 +25,23 @@ from news_item import NewsItem
 from agent_initializer import Agent
 
 
-def initialize_p_shares(agents: Dict[int, Agent]):
+def initialize_p_shares(agents: Dict[int, Agent]) -> None:
+    """
+    Assigns probabilistic share likelihoods to each agent based on their role.
+
+    Parameters:
+        agents : dict. Dictionary mapping agent ID to Agent instance.
+
+    Returns:
+        None
+
+    Examples:
+        >>> from agent_initializer import Agent
+        >>> agents = {0: Agent(0)}
+        >>> initialize_p_shares(agents)
+        >>> isinstance(agents[0].p_share_fake, float)
+        True
+    """
     for agent in agents.values():
         try:
             if agent.is_fact_checker:
@@ -27,14 +60,34 @@ def initialize_p_shares(agents: Dict[int, Agent]):
             print(f"Error initializing p_shares for agent {agent.id}: {e}")
 
 
-def select_initial_seeds(agents, news_type):
+def select_initial_seeds(agents: Dict[int, Agent], news_type: str) -> List[int]:
+    """
+    Randomly selects a set of seed agents and assigns them a belief state.
+
+    Parameters:
+        agents : dict. All agents in the simulation.
+        news_type : str. Either 'fake' or 'real'.
+
+    Returns:
+        List: list. List of agent IDs seeded with the news.
+    """
     seeds = random.sample(list(agents.keys()), seed_count)
     for uid in seeds:
         agents[uid].belief_state = news_type
     return seeds
 
-# --- Override seeding to include influencer control (Variant A) ---
-def select_initial_seeds_variant(agents, news_type):
+
+def select_initial_seeds_variant(agents: Dict[int, Agent], news_type: str) -> List[int]:
+    """
+    Selects seed users for news introduction with preference for influencers (Variant A).
+
+    Parameters:
+        agents : dict. Mapping of agent IDs to Agent objects.
+        news_type : str. Either 'fake' or 'real'.
+
+    Returns:
+        List : list. List of seeded agent IDs.
+    """
     influencers = [uid for uid, agent in agents.items() if agent.is_influencer]
     others = [uid for uid in agents if uid not in influencers]
     seed_influencers = random.sample(influencers, min(7, len(influencers)))
@@ -44,9 +97,20 @@ def select_initial_seeds_variant(agents, news_type):
         agents[uid].belief_state = news_type
     return seeds
 
-def sample_delay_from_distribution(delay_dist: Dict[int, float], agent, news_type,variant_flag_dict=variant_config) -> int:
 
-    # Delay sampling with influencer override (Variant B)
+def sample_delay_from_distribution(delay_dist: Dict[int, float], agent: Agent, news_type: str, variant_flag_dict: Dict[str, bool] = variant_config) -> int:
+    """
+    Samples a delay (in rounds) from a distribution based on user role and variant flags.
+
+    Parameters:
+        delay_dist : dict. Delay distribution dictionary (delay: probability).
+        agent : Agent. The agent sharing the news.
+        news_type : str. Either 'fake' or 'real'.
+        variant_flag_dict : dict. Configuration flags for enabled variants.
+
+    Returns:
+        int : int. The number of rounds to delay.
+    """
     if news_type == 'fake' and variant_flag_dict['variant_B'] and agent.is_influencer:
         delay_dist = {1: 0.95, 2: 0.05}
     rand_val = random.random()
@@ -55,27 +119,77 @@ def sample_delay_from_distribution(delay_dist: Dict[int, float], agent, news_typ
         cumulative += prob
         if rand_val <= cumulative:
             return delay
-    return max(delay_dist.keys()) # fallback
+    return max(delay_dist.keys())
 
 
-def schedule_initial_shares(seeds, agents, news_type, schedule, delay_offset=0,variant_flag_dict=variant_config):
+def schedule_initial_shares(seeds: List[int], agents: Dict[int, Agent], news_type: str, schedule: Dict[int, List[Tuple[int, str]]], delay_offset: int = 0, variant_flag_dict: Dict[str, bool] = variant_config) -> None:
+    """
+    Adds initial share events to the schedule queue for each seeded user.
+
+    Parameters:
+        seeds : list. List of seeded agent IDs.
+        agents : dict. Mapping of agent ID to Agent.
+        news_type : str. Either 'fake' or 'real'.
+        schedule : dict. A schedule of future events (round: list of (user, news_type)).
+        delay_offset : int. Additional delay offset for real news (used in Hypothesis 3).
+        variant_flag_dict : dict. Variant control flags.
+
+    Returns:
+        None
+    """
     dist = fake_delay_distribution if news_type == 'fake' else real_delay_distribution
     for uid in seeds:
         delay = sample_delay_from_distribution(dist, agents[uid], news_type,variant_flag_dict=variant_flag_dict)
         schedule[delay + delay_offset].append((uid, news_type))
 
-# --- Trust boost if influencer is the source (Variant C) ---
-def modified_trust(source_agent, trust,variant_flag_dict=variant_config,):
+
+def modified_trust(source_agent: Agent, trust: float, variant_flag_dict: Dict[str, bool] = variant_config) -> float:
+    """
+    Applies a trust multiplier if the source is an influencer (Variant C).
+
+    Parameters:
+        source_agent : Agent. The agent sharing the news.
+        trust : float. Original trust value.
+        variant_flag_dict : dict. Flags for controlling variant logic.
+
+    Returns:
+        float : float. Modified trust value.
+    """
     return trust * 1.2 if variant_flag_dict['variant_C'] and source_agent.is_influencer else trust
 
-def simulate_spread(
-    G: nx.Graph,
-    agents: Dict[int, Agent],
-    news_items: Dict[str, NewsItem],
-    hypothesis=None,
-    real_news_delay=0,
-    variant_flag_dict: Dict[str, Any] = variant_config,
-) -> tuple[dict[str, list[Any]], dict[str, int], int | Any, dict[str, int] | None]:
+def simulate_spread(G: nx.Graph, agents: Dict[int, Agent], news_items: Dict[str, NewsItem], hypothesis=None, real_news_delay=0,
+                    variant_flag_dict: Dict[str, Any] = variant_config,) -> tuple[dict[str, list[Any]], dict[str, int], int | Any, dict[str, int] | None]:
+    """
+    Simulates the round-based spread of fake and real news through a social network.
+    Agents may adopt beliefs, share news with delays, and revise beliefs based on trust,
+    role, and external fact-checker intervention. Includes support for:
+    - Hypothesis 2: Influencer-controlled variants (A, B, C)
+    - Hypothesis 3: Competing real vs. fake news with belief revision
+
+    Parameters:
+    G : nx.Graph. The social network graph with trust-weighted edges.
+    agents : dict. Mapping of agent IDs to Agent objects.
+    news_items : dict. Dictionary with 'fake' and 'real' NewsItem instances.
+    hypothesis : str or None. One of 'h2', 'h3', or None to control variant logic.
+    real_news_delay : int. Optional delay in seeding real news (used in Hypothesis 3).
+    variant_flag_dict : dict. Dictionary of variant activation flags.
+
+    Returns:
+        stats : dict[str, list[int]]. Infection count by round for each news type.
+        final_beliefs : dict[str, int]. Final number of agents believing fake or real news.
+        belief_revised_count : int. Number of agents who switched beliefs after receiving conflicting news.
+        influencer_impact : dict[str, int]. Spread attribution (influencer vs. normal) for fake news (only in H2).
+
+    Examples:
+        >>> import networkx as nx
+        >>> G = nx.erdos_renyi_graph(50, 0.1)
+        >>> from agent_initializer import assign_roles
+        >>> from news_item import NewsItem
+        >>> agents = assign_roles(G)
+        >>> initialize_p_shares(agents)
+        >>> news_items = {'fake': NewsItem("Fake", is_fake=True), 'real': NewsItem("Real", is_fake=False)}
+        >>> simulate_spread(G, agents, news_items)  # doctest: +SKIP
+    """
     schedule = defaultdict(list) #e.g - { 7 :[ ( 1239, "real") ], 2 : [( 1100, "fake")]} Will first get updated with initial seed numbers and then later with neighbors
     stats = {'fake': [], 'real': []}
     infected = {'fake': set(), 'real': set()}
@@ -103,7 +217,7 @@ def simulate_spread(
         for uid, news_type in current_events:
             agent = agents[uid]
             if agent.has_shared[news_type]:
-                continue #this agent has already shared this news type, so continue
+                continue # this agent has already shared this news type, so continue
 
             # Agent shares the news now
             agent.has_shared[news_type] = True
@@ -115,10 +229,10 @@ def simulate_spread(
 
                 if neighbor.belief_state is not None: # This neighbor already believes a news type
 
-                    #Check for hypothesis 3
+                    # Check for hypothesis 3
                     if hypothesis == 'h3' and neighbor.belief_state != news_type:
-                        #if this agent already believes in a news but received a conflicting news
-                        #they may check the fact and change their belief state
+                        # if this agent already believes in a news but received a conflicting news
+                        # they may check the fact and change their belief state
                         revision_chance = p_belief_revision if neighbor.is_fact_checker else 0.25
                         if random.random() < revision_chance:
                             neighbor.belief_state = news_type
@@ -135,10 +249,10 @@ def simulate_spread(
                 trust = G[uid][neighbor_id].get('trust', 0.5)
                 trust = modified_trust(agent, trust, variant_flag_dict=variant_flag_dict)
                 if news_type == 'fake' and news_items['fake'].is_flagged_fake:
-                    trust *= 0.3 # Reduce trust for flagged fake news
+                    trust *= 0.3 # reduce trust for flagged fake news
 
                 prob = agent.p_share_fake if news_type == 'fake' else agent.p_share_real
-                if random.random() < prob * trust:  #if the effective probability falls within a random theshold, then share the news
+                if random.random() < prob * trust:  # if the effective probability falls within a random theshold, then share the news
                     # Fact-checker intervention
                     if news_type == 'fake' and neighbor.is_fact_checker:
                         if random.random() < p_fact_check:
@@ -155,9 +269,9 @@ def simulate_spread(
                     )
                     schedule[round_num + delay].append((neighbor_id, news_type))
 
-        stats['fake'].append(len(infected['fake'])) #how many agents got infected with the fake news in current round
-        stats['real'].append(len(infected['real'])) #how many agents got infected with the real news in current round
-        if not schedule: #spread is over
+        stats['fake'].append(len(infected['fake'])) # how many agents got infected with the fake news in current round
+        stats['real'].append(len(infected['real'])) # how many agents got infected with the real news in current round
+        if not schedule: # spread is over
             break
 
     influencer_impact = {'influencer': 0, 'normal': 0}
@@ -167,7 +281,7 @@ def simulate_spread(
             'influencer': sum(1 for uid in infected['fake'] if source_map.get(uid) == 'influencer'),
             'normal': sum(1 for uid in infected['fake'] if source_map.get(uid) == 'normal')
         }
-    final_beliefs = {'fake': 0, 'real': 0} #final belief count for each type of news at the end of each simulation
+    final_beliefs = {'fake': 0, 'real': 0} # final belief count for each type of news at the end of each simulation
     for agent in agents.values():
         if agent.belief_state == 'fake':
             final_beliefs['fake'] += 1
@@ -176,5 +290,3 @@ def simulate_spread(
 
 
     return stats, final_beliefs, belief_revised_count, influencer_impact
-
-

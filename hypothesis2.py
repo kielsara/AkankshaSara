@@ -1,8 +1,38 @@
+'''
+hypothesis2.py
+
+This module defines simulation variants used to test Hypothesis 2, which investigates
+how different influencer behaviors affect the spread of misinformation. Each variant
+enables a combination of control flags:
+- Variant A: Seed influencers more heavily.
+- Variant B: Give influencers a speed advantage.
+- Variant C: Boost trust in influencer-shared content.
+
+Each variant is run using shared simulation logic, and results are aggregated for
+comparison across key metrics.
+'''
+
 import numpy as np
 from baseline_run import run_baseline_simulation
 
-def run_variant(name: str, variant_flags: dict, hypothesis: str = 'h2'):
+def run_variant(name: str, variant_flags: dict, hypothesis: str = 'h2') -> tuple[str, dict]:
+    """
+    Executes a single variant run under Hypothesis 2 and collects key metrics.
 
+    Parameters:
+        name : str. Label for the variant (e.g., 'variant_AB').
+        variant_flags : dict. Flags controlling which influencer mechanisms are enabled.
+        hypothesis : str. Optional hypothesis label, defaults to 'h2'.
+
+    Returns:
+        tuple : tuple. Variant label and a dictionary of outcome metrics.
+
+    Examples:
+        >>> flags = {'variant_A': True, 'variant_B': False, 'variant_C': False}
+        >>> name, result = run_variant('variant_A', flags)
+        >>> 'final_fake' in result and 'shared_fake' in result
+        True
+    """
     h2_metrics, h2_belief_revised_count = run_baseline_simulation(num_runs=1000, hypothesis=hypothesis, variant_flag=variant_flags)
 
     # Collect results
@@ -32,7 +62,18 @@ def run_variant(name: str, variant_flags: dict, hypothesis: str = 'h2'):
     return name, result
 
 
-def run_all_variants():
+def run_all_variants() -> dict:
+    """
+    Executes all defined influencer behavior variants and aggregates results.
+
+    Returns:
+        dict : dict. Dictionary mapping variant name to its outcome metrics.
+
+    Examples:
+        >>> results = run_all_variants() # doctest: +SKIP
+        >>> 'variant_ABC' in results and 'final_real' in results['variant_ABC'] # doctest: +SKIP
+        True
+    """
     variants = {
         'baseline': {'variant_A': False, 'variant_B': False, 'variant_C': False},
         'variant_AB': {'variant_A': True, 'variant_B': True, 'variant_C': False},

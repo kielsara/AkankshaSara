@@ -1,28 +1,75 @@
 '''
 agent_initializer.py
+
+This module defines the Agent class and provides functions to initialize
+agents with roles and behavioral parameters, as well as assign trust levels
+on a social network graph. These roles support the simulation of information
+diffusion, belief change, and social influence.
+
+Roles include:
+- Influencers (high connectivity, high impact)
+- Fact-checkers (can flag fake news)
+- Susceptible users (more likely to believe/share misinformation)
+- Regular users (default behavior)
+
+Trust levels are assigned to edges based on community affiliation,
+with intra-community connections receiving higher trust.
 '''
 
 import random
 import numpy as np
 from config import  *
-
+import networkx as nx
+from typing import Dict
 
 # Define agent roles and properties
 class Agent:
-    def __init__(self, uid):
+    """
+    Represents an individual node/user in the social network with a role and behavior profile.
+
+    Attributes:
+        id : int. Node identifier.
+        is_influencer : bool. Whether the agent is an influencer.
+        is_fact_checker : bool. Whether the agent can flag fake news.
+        is_susceptible : bool. Whether the agent is more vulnerable to misinformation.
+        susceptible_type : str or None. One of 'normal', 'highly_susceptible', 'super_spreader'.
+        number_of_friends : int. Number of direct neighbors in the graph.
+        belief_state : str or None. Current belief ('fake', 'real', or None).
+        has_shared : dict. Tracks whether the agent has shared each news type.
+        p_share_fake : float. Probability of sharing fake news.
+        p_share_real : float. Probability of sharing real news.
+    """
+    def __init__(self, uid: int):
         self.id = uid
         self.is_influencer = False
         self.is_fact_checker = False
         self.is_susceptible = False
-        self.susceptible_type = None  # 'normal', 'highly_susceptible', 'super_spreader'
+        self.susceptible_type = None
         self.number_of_friends = 0
-        self.belief_state = None #(None/'fake'/'real')
+        self.belief_state = None
         self.has_shared = {'fake': False, 'real': False}
         self.p_share_fake = 0.0
         self.p_share_real = 0.0
 
 
-def assign_roles(G,percent_fc=percent_fact_checkers):
+def assign_roles(G: nx.Graph, percent_fc: float = percent_fact_checkers) -> Dict[int, Agent]:
+    """
+    Assigns roles to agents in the graph based on network structure and predefined proportions.
+
+    Parameters:
+        G : nx.Graph. Social network graph.
+        percent_fc : float. Percentage of skeptical users assigned as fact-checkers.
+
+    Returns:
+        Dict[int, Agent]: Mapping of node IDs to Agent instances.
+
+    Examples:
+        >>> import networkx as nx
+        >>> G = nx.erdos_renyi_graph(100, 0.05)
+        >>> agents = assign_roles(G)
+        >>> len(agents) == 100
+        True
+    """
     agents = {}
 
     # Top-level role counts
@@ -80,16 +127,35 @@ def assign_roles(G,percent_fc=percent_fact_checkers):
 
 
 # Assign trust levels to edges
-def assign_trust_levels(G, num_communities):
+def assign_trust_levels(G: nx.Graph, num_communities: int) -> Dict[int, int]:
+    """
+    Assigns trust values to edges in the network based on community affiliation.
+    Intra-community edges receive high trust (0.8–1.0), inter-community edges lower trust (0.1–0.5).
+
+    Parameters:
+        G : nx.Graph. Graph with nodes and edges.
+        num_communities : int. Number of modular communities assumed.
+
+    Returns:
+        Dict[int, int]: Mapping of node ID to community label.
+
+    Examples:
+        >>> G = nx.path_graph(10)
+        >>> labels = assign_trust_levels(G, num_communities=2)
+        >>> isinstance(labels, dict)
+        True
+        >>> all(0 <= v < 2 for v in labels.values())
+        True
+    """
     community_labels = {}
     for i, node in enumerate(G.nodes()):
         community_labels[node] = i % num_communities
 
     for u, v in G.edges():
         if community_labels[u] == community_labels[v]:
-            trust = np.random.uniform(0.8, 1.0) #intra-community
+            trust = np.random.uniform(0.8, 1.0) # intra-community
         else:
-            trust = np.random.uniform(0.1, 0.5)  #inter-community
+            trust = np.random.uniform(0.1, 0.5) # inter-community
         G[u][v]['trust'] = trust
 
     return community_labels
