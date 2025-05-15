@@ -41,6 +41,10 @@ def initialize_p_shares(agents: Dict[int, Agent]) -> None:
         >>> initialize_p_shares(agents)
         >>> isinstance(agents[0].p_share_fake, float)
         True
+        >>> 0.0 <= agents[0].p_share_fake <= 1.0
+        True
+        >>> 0.0 <= agents[0].p_share_real <= 1.0
+        True
     """
     for agent in agents.values():
         try:
@@ -110,6 +114,13 @@ def sample_delay_from_distribution(delay_dist: Dict[int, float], agent: Agent, n
 
     Returns:
         int : int. The number of rounds to delay.
+    Examples:
+        >>> import random; random.seed(0)
+        >>> from agent_initializer import Agent
+        >>> agent = Agent(2)
+        >>> delay_dist = {1: 0.7, 2: 0.3}
+        >>> sample_delay_from_distribution(delay_dist, agent, 'real', {'variant_B': False}) in delay_dist
+        True
     """
     if news_type == 'fake' and variant_flag_dict['variant_B'] and agent.is_influencer:
         delay_dist = {1: 0.95, 2: 0.05}
@@ -154,6 +165,14 @@ def modified_trust(source_agent: Agent, trust: float, variant_flag_dict: Dict[st
 
     Returns:
         float : float. Modified trust value.
+    Examples:
+        >>> from agent_initializer import Agent
+        >>> agent = Agent(1)
+        >>> agent.is_influencer = True
+        >>> modified_trust(agent, 0.5, {'variant_C': True})
+        0.6
+        >>> modified_trust(agent, 0.5, {'variant_C': False})
+        0.5
     """
     return trust * 1.2 if variant_flag_dict['variant_C'] and source_agent.is_influencer else trust
 
